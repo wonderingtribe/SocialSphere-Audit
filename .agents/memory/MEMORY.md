@@ -1,0 +1,1 @@
+- [SocialSphere product guardrails](socialsphere-product-guardrails.md) — official integrations, evidence-backed leads, and approval-first AI are core trust requirements.

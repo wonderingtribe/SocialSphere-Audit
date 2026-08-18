@@ -1,0 +1,143 @@
+. Then give it the actual product mission
+
+After the audit:
+
+Now begin implementing the SocialSphere AI product using the existing codebase.
+
+The core product is an AI-powered social CRM, lead-generation, social engagement, and conversion platform.
+
+The system should eventually allow a business to connect its authorized social accounts and manage its social growth from one dashboard.
+
+CORE SYSTEM:
+
+Social Platforms
+→ Content
+→ Campaigns
+→ Engagement
+→ Conversations
+→ Lead Detection
+→ Lead Qualification
+→ CRM
+→ AI Follow-Up
+→ Website Traffic
+→ Conversion Tracking
+→ Analytics
+
+The application should support a unified platform architecture rather than separate disconnected tools.
+
+IMPORTANT:
+Use official APIs/OAuth integrations where platforms require them.
+Never bypass platform authentication, API restrictions, rate limits, or anti-spam systems.
+Do not implement fake automation that pretends to be connected to a platform.
+If an integration is not connected yet, clearly mark it as "Not Connected" and provide the proper connection workflow.
+
+Build the system so additional social platforms can be added through a common integration architecture rather than hardcoding each platform throughout the application.
+
+
+---
+
+3. Build the AI Lead Engine
+
+This is the part I'd make the centerpiece.
+
+Build the SocialSphere AI Lead Engine.
+
+The lead engine should be capable of processing authorized social interactions and identifying potential leads.
+
+Create a lead pipeline:
+
+DISCOVERED
+→ ENGAGED
+→ INTERESTED
+→ QUALIFIED
+→ WEBSITE VISIT
+→ CONVERSION
+→ CUSTOMER
+
+Each lead should have structured data such as:
+
+- name
+- username
+- platform
+- profile URL when legitimately available
+- source
+- campaign
+- interaction type
+- engagement history
+- lead score
+- intent score
+- status
+- tags
+- notes
+- last interaction
+- next follow-up
+- conversion status
+- created date
+
+Create a scoring system that evaluates signals such as:
+
+- comments
+- replies
+- direct conversations
+- questions about the product
+- link clicks
+- website activity
+- repeated engagement
+- campaign interaction
+
+Do not fabricate lead activity.
+
+The dashboard should clearly distinguish:
+REAL DATA
+MOCK/DEMO DATA
+NOT CONNECTED DATA
+
+Build the backend services so the AI lead engine can later consume real platform events through official APIs/webhooks.
+
+
+---
+
+4. Then build the AI conversation system
+
+This is where your idea gets much stronger than a normal social scheduler.
+
+Build an AI Conversation Assistant for SocialSphere AI.
+
+The AI should help businesses respond to legitimate inbound conversations and interactions.
+
+Create:
+
+- conversation inbox
+- conversation history
+- lead context panel
+- AI suggested response
+- approve/send workflow
+- conversation status
+- lead qualification
+- follow-up scheduling
+- notes
+- tags
+- sentiment/intent indicators
+- conversion tracking
+
+The AI must NOT blindly send messages to random users.
+
+Use an approval-first architecture initially:
+
+Incoming conversation
+→ AI analyzes
+→ AI generates suggested response
+→ business approves
+→ response is sent through the authorized platform API
+
+Later the architecture should support configurable automation levels.
+
+Create settings for:
+
+MANUAL
+AI SUGGEST
+APPROVAL REQUIRED
+AUTOMATED
+
+Keep the automation layer modular so platform policies can be respected independently.
+
