@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: API specification
 servers:
   - url: /api
@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: leads
+    description: Lead operations
+  - name: conversations
+    description: Conversation operations
+  - name: integrations
+    description: Integration operations
 paths:
   /healthz:
     get:
@@ -24,6 +30,114 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: List leads
+      description: Returns the leads visible to the current workspace
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lead"
+  /leads/{id}:
+    get:
+      operationId: getLead
+      tags: [leads]
+      summary: Get a lead
+      description: Returns a single lead by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "404":
+          description: Lead not found
+  /leads/{id}/advance:
+    post:
+      operationId: advanceLead
+      tags: [leads]
+      summary: Advance a demo lead stage
+      description: Advances a demo lead to the next pipeline stage. Real stage changes come from verified platform or website events.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "409":
+          description: Lead is not in demo mode or is already at the final stage
+  /conversations:
+    get:
+      operationId: listConversations
+      tags: [conversations]
+      summary: List conversations
+      description: Returns the conversations visible to the current workspace
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+  /conversations/{id}:
+    get:
+      operationId: getConversation
+      tags: [conversations]
+      summary: Get a conversation
+      description: Returns a single conversation by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "404":
+          description: Conversation not found
+  /integrations:
+    get:
+      operationId: listIntegrations
+      tags: [integrations]
+      summary: List integrations
+      description: Returns available social platform integrations and their connection state
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Integration"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +147,132 @@ components:
           type: string
       required:
         - status
-
+    DataMode:
+      type: string
+      enum:
+        - DEMO
+        - REAL
+        - NOT_CONNECTED
+    LeadStatus:
+      type: string
+      enum:
+        - DISCOVERED
+        - ENGAGED
+        - INTERESTED
+        - QUALIFIED
+        - WEBSITE VISIT
+        - CONVERSION
+        - CUSTOMER
+    Lead:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        platform:
+          type: string
+        source:
+          type: string
+        campaign:
+          type: string
+        interaction:
+          type: string
+        history:
+          type: string
+        leadScore:
+          type: integer
+        intentScore:
+          type: integer
+        status:
+          $ref: "#/components/schemas/LeadStatus"
+        tags:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+        lastInteraction:
+          type: string
+        nextFollowUp:
+          type: string
+        conversionStatus:
+          type: string
+        mode:
+          $ref: "#/components/schemas/DataMode"
+      required:
+        - id
+        - name
+        - username
+        - platform
+        - source
+        - campaign
+        - interaction
+        - history
+        - leadScore
+        - intentScore
+        - status
+        - tags
+        - notes
+        - lastInteraction
+        - nextFollowUp
+        - conversionStatus
+        - mode
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+        leadId:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        platform:
+          type: string
+        preview:
+          type: string
+        intent:
+          type: string
+        sentiment:
+          type: string
+        status:
+          type: string
+        suggestion:
+          type: string
+        mode:
+          $ref: "#/components/schemas/DataMode"
+      required:
+        - id
+        - leadId
+        - name
+        - username
+        - platform
+        - preview
+        - intent
+        - sentiment
+        - status
+        - suggestion
+        - mode
+    Integration:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        connected:
+          type: boolean
+      required:
+        - id
+        - name
+        - description
+        - icon
+        - connected
