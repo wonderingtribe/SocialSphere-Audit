@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.2.0
+  version: 0.3.0
   description: API specification
 servers:
   - url: /api
@@ -16,6 +16,10 @@ tags:
     description: Conversation operations
   - name: integrations
     description: Integration operations
+  - name: webhooks
+    description: Platform webhook receiver and settings
+  - name: billing
+    description: Stripe billing operations
 paths:
   /healthz:
     get:
@@ -123,6 +127,39 @@ paths:
                 $ref: "#/components/schemas/Conversation"
         "404":
           description: Conversation not found
+  /conversations/{id}/approve:
+    post:
+      operationId: approveConversation
+      tags: [conversations]
+      summary: Approve an AI-suggested reply
+      description: Approves a reply for the conversation. The reply is stored and flagged approved; it is only ever delivered after the platform adapter confirms a real send through an official API. Never simulates a send.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reply]
+              properties:
+                reply:
+                  type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApproveConversationResponse"
+        "400":
+          description: Reply is empty or invalid
+        "404":
+          description: Conversation not found
   /integrations:
     get:
       operationId: listIntegrations
@@ -138,7 +175,230 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Integration"
+  /integrations/{id}/connect:
+    post:
+      operationId: connectIntegration
+      tags: [integrations]
+      summary: Get an OAuth authorization URL
+      description: Returns the official OAuth authorization URL for a platform. Credentials must be configured via environment variables.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectionResult"
+        "404":
+          description: Integration not found
+        "409":
+          description: Integration is already connected
+        "503":
+          description: OAuth credentials are not configured
+  /integrations/oauth/callback:
+    get:
+      operationId: oauthCallback
+      tags: [integrations]
+      summary: OAuth callback
+      description: Handles the OAuth redirect after a user authorizes a platform
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: error
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Connected
+        "400":
+          description: Authorization failed or missing parameters
+        "501":
+          description: Token exchange not implemented for this platform
+  /settings/webhooks:
+    get:
+      operationId: listWebhookSettings
+      tags: [webhooks]
+      summary: List webhook settings
+      description: Returns per-platform webhook callback URLs and verify tokens for registering in platform developer dashboards
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookSettingsResponse"
+  /settings/webhooks/events:
+    get:
+      operationId: listWebhookEvents
+      tags: [webhooks]
+      summary: List recent webhook events
+      description: Returns the most recent webhook events received from platforms
+      parameters:
+        - name: platform
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebhookEvent"
+  /webhooks/{platform}:
+    get:
+      operationId: verifyWebhook
+      tags: [webhooks]
+      summary: Platform webhook verification
+      description: Answers a platform webhook verification challenge
+      parameters:
+        - name: platform
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Challenge echoed
+        "403":
+          description: Verification failed
+    post:
+      operationId: receiveWebhook
+      tags: [webhooks]
+      summary: Receive a platform webhook event
+      description: Stores an incoming platform webhook event after token verification
+      parameters:
+        - name: platform
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: token
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: "#/components/parameters/WebhookTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+        "401":
+          description: Invalid webhook token
+  /billing/subscription:
+    get:
+      operationId: getSubscription
+      tags: [billing]
+      summary: Current subscription
+      description: Returns the workspace subscription plan and status
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionStatus"
+  /billing/checkout:
+    post:
+      operationId: createCheckout
+      tags: [billing]
+      summary: Create a Stripe Checkout session
+      description: Creates a Stripe subscription Checkout Session and returns its URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan]
+              properties:
+                plan:
+                  $ref: "#/components/schemas/Plan"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    nullable: true
+        "400":
+          description: Invalid plan
+        "503":
+          description: Stripe or database not configured
+  /billing/webhook:
+    post:
+      operationId: billingWebhook
+      tags: [billing]
+      summary: Stripe webhook
+      description: Receives Stripe subscription events and syncs the local subscription row
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+      parameters:
+        - $ref: "#/components/parameters/StripeSignatureHeader"
 components:
+  parameters:
+    WebhookTokenHeader:
+      name: x-webhook-token
+      in: header
+      required: false
+      schema:
+        type: string
+    StripeSignatureHeader:
+      name: stripe-signature
+      in: header
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -163,6 +423,11 @@ components:
         - WEBSITE VISIT
         - CONVERSION
         - CUSTOMER
+    Plan:
+      type: string
+      enum:
+        - starter
+        - pro
     Lead:
       type: object
       properties:
@@ -243,6 +508,16 @@ components:
           type: string
         suggestion:
           type: string
+        replyText:
+          type: string
+        replyStatus:
+          type: string
+          enum:
+            - pending
+            - approved
+            - sent
+        sentAt:
+          type: string
         mode:
           $ref: "#/components/schemas/DataMode"
       required:
@@ -257,6 +532,19 @@ components:
         - status
         - suggestion
         - mode
+    ApproveConversationResponse:
+      type: object
+      properties:
+        conversation:
+          $ref: "#/components/schemas/Conversation"
+        delivery:
+          type: string
+          enum:
+            - requires_connection
+            - queued
+      required:
+        - conversation
+        - delivery
     Integration:
       type: object
       properties:
@@ -276,3 +564,79 @@ components:
         - description
         - icon
         - connected
+    ConnectionResult:
+      type: object
+      properties:
+        id:
+          type: string
+        authUrl:
+          type: string
+        state:
+          type: string
+      required:
+        - id
+        - authUrl
+        - state
+    WebhookSetting:
+      type: object
+      properties:
+        platform:
+          type: string
+        callbackUrl:
+          type: string
+        verifyToken:
+          type: string
+        requiresWebhook:
+          type: boolean
+        configured:
+          type: boolean
+      required:
+        - platform
+        - callbackUrl
+        - verifyToken
+        - requiresWebhook
+        - configured
+    WebhookSettingsResponse:
+      type: object
+      properties:
+        base:
+          type: string
+        settings:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookSetting"
+      required:
+        - base
+        - settings
+    WebhookEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        platform:
+          type: string
+        eventType:
+          type: string
+        receivedAt:
+          type: string
+      required:
+        - id
+        - platform
+        - eventType
+        - receivedAt
+    SubscriptionStatus:
+      type: object
+      properties:
+        plan:
+          type: string
+        status:
+          type: string
+        currentPeriodEnd:
+          type: string
+          nullable: true
+        stripeConfigured:
+          type: boolean
+      required:
+        - plan
+        - status
+        - stripeConfigured
