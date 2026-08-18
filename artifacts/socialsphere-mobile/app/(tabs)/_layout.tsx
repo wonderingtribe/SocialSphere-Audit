@@ -31,6 +31,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: 'link', selected: 'link' }} />
         <Label>Connect</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Icon sf={{ default: 'gearshape', selected: 'gearshape.fill' }} />
+        <Label>Settings</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -114,6 +118,13 @@ function ClassicTabLayout() {
         options={{
           title: 'Connect',
           tabBarIcon: ({ color }) => <Feather name="link" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color }) => <Feather name="settings" size={22} color={color} />,
         }}
       />
     </Tabs>

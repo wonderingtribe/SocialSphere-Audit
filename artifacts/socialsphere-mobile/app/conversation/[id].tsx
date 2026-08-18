@@ -1,4 +1,13 @@
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,9 +20,11 @@ export default function ConversationDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getConversation, getLead } = useSocialSphere();
+  const { getConversation, getLead, approveConversation } = useSocialSphere();
   const conversation = getConversation(id);
   const lead = conversation ? getLead(conversation.leadId) : undefined;
+  const [reply, setReply] = useState(conversation?.suggestion ?? '');
+  const [submitting, setSubmitting] = useState(false);
 
   if (!conversation || !lead) {
     return (
@@ -22,6 +33,31 @@ export default function ConversationDetailScreen() {
       </View>
     );
   }
+
+  const isAlreadyApproved = conversation.replyStatus === 'approved' || conversation.replyStatus === 'sent';
+
+  const handleApprove = async () => {
+    if (!reply.trim()) {
+      Alert.alert('Empty reply', 'Write a reply before approving it.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const delivery = await approveConversation(conversation.id, reply.trim());
+      if (!delivery) {
+        Alert.alert('Could not approve', 'The server could not save this reply.');
+        return;
+      }
+      Alert.alert(
+        delivery === 'queued' ? 'Reply queued' : 'Reply approved',
+        delivery === 'queued'
+          ? 'The response has been sent through the connected platform account.'
+          : 'The reply is saved and approved. It will be sent once the official platform account is connected — SocialSphere never simulates a send.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <ScrollView
@@ -58,22 +94,54 @@ export default function ConversationDetailScreen() {
           <Feather name="cpu" size={17} color={colors.secondaryForeground} />
           <Text style={[styles.suggestionTitle, { color: colors.secondaryForeground }]}>AI suggested response</Text>
         </View>
-        <Text style={[styles.suggestionText, { color: colors.secondaryForeground }]}>{conversation.suggestion}</Text>
-        <Text style={[styles.suggestionFootnote, { color: colors.secondaryForeground }]}>
+        <Text style={[styles.suggestionText, { color: colors.secondaryForeground }]}>
           Generated from this thread and the observed lead context. Review before sending.
         </Text>
+        <TextInput
+          value={reply}
+          onChangeText={setReply}
+          multiline
+          editable={!isAlreadyApproved}
+          style={[styles.replyInput, {
+            backgroundColor: colors.card,
+            color: colors.foreground,
+            borderColor: colors.border,
+            ...(isAlreadyApproved ? { opacity: 0.7 } : {}),
+          }]}
+          placeholder="Write the response to send…"
+          placeholderTextColor={colors.mutedForeground}
+        />
+        {isAlreadyApproved ? (
+          <Text style={[styles.approvedFootnote, { color: colors.secondaryForeground }]}>
+            This reply is {conversation.replyStatus === 'sent' ? 'sent' : 'approved'} — edit it on the platform before delivery if needed.
+          </Text>
+        ) : null}
       </View>
       <Pressable
-        onPress={() =>
-          Alert.alert(
-            'Sending is unavailable',
-            'Connect an official platform account before approving or sending a response. SocialSphere will never simulate a send.',
-          )
-        }
-        style={({ pressed }) => [styles.approveButton, { backgroundColor: colors.primary, opacity: pressed ? 0.82 : 1 }]}
+        onPress={handleApprove}
+        disabled={submitting || isAlreadyApproved}
+        style={({ pressed }) => [
+          styles.approveButton,
+          {
+            backgroundColor: isAlreadyApproved ? colors.muted : colors.primary,
+            opacity: pressed ? 0.82 : submitting ? 0.7 : 1,
+          },
+        ]}
       >
-        <Feather name="check-circle" size={17} color={colors.primaryForeground} />
-        <Text style={[styles.approveText, { color: colors.primaryForeground }]}>Approve and send</Text>
+        <Feather
+          name={submitting ? 'loader' : isAlreadyApproved ? 'check-circle' : 'check-circle'}
+          size={17}
+          color={isAlreadyApproved ? colors.mutedForeground : colors.primaryForeground}
+        />
+        <Text style={[styles.approveText, { color: isAlreadyApproved ? colors.mutedForeground : colors.primaryForeground }]}>
+          {submitting
+            ? 'Approving…'
+            : isAlreadyApproved
+              ? conversation.replyStatus === 'sent'
+                ? 'Reply sent'
+                : 'Approved — awaiting platform'
+              : 'Approve and send'}
+        </Text>
       </Pressable>
       <Text style={[styles.disclaimer, { color: colors.mutedForeground }]}>
         Approval-first workflow · Requires a connected {conversation.platform} account
@@ -118,8 +186,9 @@ const styles = StyleSheet.create({
   suggestion: { borderRadius: 18, padding: 16, marginTop: 10 },
   suggestionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   suggestionTitle: { fontSize: 14, fontWeight: '800' },
-  suggestionText: { fontSize: 15, lineHeight: 22, marginTop: 13 },
-  suggestionFootnote: { fontSize: 11, lineHeight: 17, marginTop: 13, opacity: 0.8 },
+  suggestionText: { fontSize: 11, lineHeight: 17, marginTop: 12, opacity: 0.8 },
+  replyInput: { borderWidth: 1, borderRadius: 12, marginTop: 12, minHeight: 84, padding: 12, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
+  approvedFootnote: { fontSize: 11, lineHeight: 17, marginTop: 12, opacity: 0.9 },
   approveButton: { minHeight: 49, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 17 },
   approveText: { fontSize: 14, fontWeight: '800' },
   disclaimer: { fontSize: 11, textAlign: 'center', marginTop: 10 },

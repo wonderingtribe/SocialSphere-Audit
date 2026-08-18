@@ -66,7 +66,7 @@ type SocialSphereContextValue = {
   getConversation: (id: string) => Conversation | undefined;
   advanceLead: (id: string) => void;
   /** Returns the official OAuth authorization URL, or null when unconfigured. */
-  connectIntegration: (id: string) => Promise<string | null>;
+  connectIntegration: (id: string) => Promise<{ authUrl: string | null; error: string | null }>;
   /** Approves an AI-suggested reply on the server. Never simulates a send. */
   approveConversation: (
     id: string,
@@ -152,12 +152,19 @@ export function SocialSphereProvider({ children }: { children: React.ReactNode }
         );
       },
       connectIntegration: (id) =>
-        new Promise((resolve, reject) => {
+        new Promise((resolve) => {
           connectMutation.mutate(
             { id },
             {
-              onSuccess: (result) => resolve(result.authUrl || null),
-              onError: () => resolve(null),
+              onSuccess: (result) =>
+                resolve({ authUrl: result.authUrl || null, error: null }),
+              onError: (err) => {
+                const message =
+                  err instanceof Error
+                    ? err.message
+                    : 'Connection unavailable in this preview';
+                resolve({ authUrl: null, error: message });
+              },
             },
           );
         }),
