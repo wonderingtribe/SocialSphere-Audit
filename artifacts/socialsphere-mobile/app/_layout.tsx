@@ -13,12 +13,25 @@ import {
 } from '@expo-google-fonts/inter';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { setBaseUrl } from '@workspace/api-client-react';
 import { SocialSphereProvider } from '@/context/SocialSphereContext';
+import { getApiBaseUrl } from '@/constants/api';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
+// Route all API calls through the configured backend (see constants/api.ts).
+// Must run before any query mounts.
+setBaseUrl(getApiBaseUrl());
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 15_000,
+    },
+  },
+});
 
 function RootLayoutNav() {
   return (
