@@ -55,6 +55,14 @@ router.post("/integrations/:id/connect", async (req, res) => {
   const state = crypto.randomBytes(16).toString("hex");
   const authUrl = buildAuthorizationUrl(integration.id, oauthConfig(), state);
 
+  if (!authUrl) {
+    res.status(503).json({
+      error: `${integration.name} OAuth credentials are not configured`,
+      requiresCredentials: true,
+    });
+    return;
+  }
+
   await store.setConnection(integration.id, authUrl);
 
   res.json({

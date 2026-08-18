@@ -11,11 +11,13 @@ import { fileURLToPath } from "node:url";
 import { getDb, isDbConfigured } from "@workspace/db";
 import {
   conversationsTable,
+  demoConversations,
+  demoIntegrations,
+  demoLeads,
   integrationsTable,
   leadsTable,
   subscriptionsTable,
 } from "@workspace/db";
-import { demoConversations, demoIntegrations, demoLeads } from "../../artifacts/api-server/src/data/demoData";
 
 export async function seedWorkspaceDatabase(): Promise<void> {
   if (!isDbConfigured) {

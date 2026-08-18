@@ -174,7 +174,7 @@ router.post("/webhook", async (req: Request, res: Response) => {
     event.type === "customer.subscription.updated" ||
     event.type === "customer.subscription.deleted"
   ) {
-    const subscription = event.data.object as {
+    const subscription = event.data.object as unknown as {
       id: string;
       status: string;
       current_period_end: number;

@@ -20,12 +20,10 @@ router.get("/webhooks/:platform", async (req, res) => {
     const token = query["hub.verify_token"];
     const challenge = query["hub.challenge"];
 
-    if (
-      mode !== "subscribe" ||
-      !token ||
-      !challenge ||
-      token !== (await getStore()).getWebhookToken(platform)
-    ) {
+    const store = await getStore();
+    const expected = await store.getWebhookToken(platform);
+
+    if (mode !== "subscribe" || !token || !challenge || token !== expected) {
       res.status(403).send("Verification failed");
       return;
     }

@@ -39,3 +39,4 @@ export function getDb(): NodePgDatabase<typeof schema> {
 }
 
 export * from "./schema";
+export * from "./demoData";

@@ -69,10 +69,24 @@ function getDeploymentDomain() {
     return stripProtocol(process.env.EXPO_PUBLIC_DOMAIN);
   }
 
-  console.error(
-    'ERROR: No deployment domain found. Set REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, or EXPO_PUBLIC_DOMAIN',
+  return undefined;
+}
+
+async function localExport() {
+  const { spawn } = require('child_process');
+  console.log(
+    'No deployment domain found; running a local Expo export instead.',
   );
-  process.exit(1);
+
+  const result = await new Promise((resolve) => {
+    const child = spawn('pnpm', ['exec', 'expo', 'export', '--platform', 'android', '--output-dir', 'dist'], {
+      stdio: 'inherit',
+      cwd: projectRoot,
+    });
+    child.on('exit', (code) => resolve(code ?? 1));
+  });
+
+  process.exit(result);
 }
 
 function prepareDirectories(timestamp) {
@@ -527,6 +541,10 @@ async function main() {
   setupSignalHandlers();
 
   const domain = getDeploymentDomain();
+  if (!domain) {
+    await localExport();
+    return;
+  }
   const expoPublicReplId = getExpoPublicReplId();
   const baseUrl = `https://${domain}`;
   const timestamp = `${Date.now()}-${process.pid}`;

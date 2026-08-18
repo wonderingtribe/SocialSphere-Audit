@@ -14,7 +14,7 @@ import {
   demoConversations,
   demoIntegrations,
   demoLeads,
-} from "../data/demoData";
+} from "@workspace/db";
 
 /**
  * Data store interface backed by PostgreSQL via Drizzle, with an in-memory
@@ -408,10 +408,9 @@ function createMemoryStore(): Store {
     async listIntegrations() {
       return integrations;
     },
-    async setConnection(id, connectionUrl) {
+    async setConnection(id) {
       const integration = integrations.find((candidate) => candidate.id === id);
       if (!integration) return undefined;
-      integration.connectionUrl = connectionUrl;
       return { ...integration };
     },
     async getWebhookToken(platform) {
