@@ -3,8 +3,9 @@
  * Do not edit manually.
  * Api
  * API specification
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
+import type { ConversationReplyStatus } from './conversationReplyStatus';
 import type { DataMode } from './dataMode';
 
 export interface Conversation {
@@ -18,5 +19,8 @@ export interface Conversation {
   sentiment: string;
   status: string;
   suggestion: string;
+  replyText?: string;
+  replyStatus?: ConversationReplyStatus;
+  sentAt?: string;
   mode: DataMode;
 }

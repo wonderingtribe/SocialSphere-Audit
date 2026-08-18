@@ -22,11 +22,12 @@ export function getPlatformAdapter(platformId: string): PlatformAdapter | undefi
 export function buildAuthorizationUrl(
   platformId: string,
   config: OAuthConfig,
+  state: string,
 ): string | null {
   const adapter = adapters.get(platformId);
   if (!adapter) return null;
   if (!adapter.isConfigured(config)) return null;
-  return adapter.buildAuthorizationUrl(config);
+  return adapter.buildAuthorizationUrl(config, state);
 }
 
 /**

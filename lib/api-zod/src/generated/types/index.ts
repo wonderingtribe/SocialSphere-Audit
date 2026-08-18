@@ -3,12 +3,27 @@
  * Do not edit manually.
  * Api
  * API specification
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 
+export * from './approveConversationResponseDelivery';
+export * from './billingWebhook200';
+export * from './connectionResult';
 export * from './conversation';
+export * from './conversationReplyStatus';
+export * from './createCheckout200';
 export * from './dataMode';
 export * from './healthStatus';
 export * from './integration';
 export * from './lead';
 export * from './leadStatus';
+export * from './listWebhookEventsParams';
+export * from './oauthCallbackParams';
+export * from './plan';
+export * from './receiveWebhook200';
+export * from './stripeSignatureHeaderParameter';
+export * from './subscriptionStatus';
+export * from './webhookEvent';
+export * from './webhookSetting';
+export * from './webhookSettingsResponse';
+export * from './webhookTokenHeaderParameter';

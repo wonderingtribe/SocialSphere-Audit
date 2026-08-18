@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * API specification
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 import * as zod from "zod/v4";
 
@@ -116,6 +116,9 @@ export const ListConversationsResponseItem = zod.object({
   "sentiment": zod.string(),
   "status": zod.string(),
   "suggestion": zod.string(),
+  "replyText": zod.string().optional(),
+  "replyStatus": zod.enum(['pending', 'approved', 'sent']).optional(),
+  "sentAt": zod.string().optional(),
   "mode": zod.enum(['DEMO', 'REAL', 'NOT_CONNECTED'])
 })
 export const ListConversationsResponse = zod.array(ListConversationsResponseItem)
@@ -140,7 +143,43 @@ export const GetConversationResponse = zod.object({
   "sentiment": zod.string(),
   "status": zod.string(),
   "suggestion": zod.string(),
+  "replyText": zod.string().optional(),
+  "replyStatus": zod.enum(['pending', 'approved', 'sent']).optional(),
+  "sentAt": zod.string().optional(),
   "mode": zod.enum(['DEMO', 'REAL', 'NOT_CONNECTED'])
+})
+
+
+/**
+ * Approves a reply for the conversation. The reply is stored and flagged approved; it is only ever delivered after the platform adapter confirms a real send through an official API. Never simulates a send.
+ * @summary Approve an AI-suggested reply
+ */
+export const ApproveConversationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const ApproveConversationBody = zod.object({
+  "reply": zod.string()
+})
+
+export const ApproveConversationResponse = zod.object({
+  "conversation": zod.object({
+  "id": zod.string(),
+  "leadId": zod.string(),
+  "name": zod.string(),
+  "username": zod.string(),
+  "platform": zod.string(),
+  "preview": zod.string(),
+  "intent": zod.string(),
+  "sentiment": zod.string(),
+  "status": zod.string(),
+  "suggestion": zod.string(),
+  "replyText": zod.string().optional(),
+  "replyStatus": zod.enum(['pending', 'approved', 'sent']).optional(),
+  "sentAt": zod.string().optional(),
+  "mode": zod.enum(['DEMO', 'REAL', 'NOT_CONNECTED'])
+}),
+  "delivery": zod.enum(['requires_connection', 'queued'])
 })
 
 
@@ -156,5 +195,140 @@ export const ListIntegrationsResponseItem = zod.object({
   "connected": zod.boolean()
 })
 export const ListIntegrationsResponse = zod.array(ListIntegrationsResponseItem)
+
+
+/**
+ * Returns the official OAuth authorization URL for a platform. Credentials must be configured via environment variables.
+ * @summary Get an OAuth authorization URL
+ */
+export const ConnectIntegrationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const ConnectIntegrationResponse = zod.object({
+  "id": zod.string(),
+  "authUrl": zod.string(),
+  "state": zod.string()
+})
+
+
+/**
+ * Handles the OAuth redirect after a user authorizes a platform
+ * @summary OAuth callback
+ */
+export const OauthCallbackQueryParams = zod.object({
+  "code": zod.coerce.string(),
+  "state": zod.coerce.string(),
+  "error": zod.coerce.string().optional()
+})
+
+export const OauthCallbackResponse = zod.unknown()
+
+
+/**
+ * Returns per-platform webhook callback URLs and verify tokens for registering in platform developer dashboards
+ * @summary List webhook settings
+ */
+export const ListWebhookSettingsResponse = zod.object({
+  "base": zod.string(),
+  "settings": zod.array(zod.object({
+  "platform": zod.string(),
+  "callbackUrl": zod.string(),
+  "verifyToken": zod.string(),
+  "requiresWebhook": zod.boolean(),
+  "configured": zod.boolean()
+}))
+})
+
+
+/**
+ * Returns the most recent webhook events received from platforms
+ * @summary List recent webhook events
+ */
+export const ListWebhookEventsQueryParams = zod.object({
+  "platform": zod.coerce.string().optional()
+})
+
+export const ListWebhookEventsResponseItem = zod.object({
+  "id": zod.int(),
+  "platform": zod.string(),
+  "eventType": zod.string(),
+  "receivedAt": zod.string()
+})
+export const ListWebhookEventsResponse = zod.array(ListWebhookEventsResponseItem)
+
+
+/**
+ * Answers a platform webhook verification challenge
+ * @summary Platform webhook verification
+ */
+export const VerifyWebhookParams = zod.object({
+  "platform": zod.coerce.string()
+})
+
+export const VerifyWebhookResponse = zod.unknown()
+
+
+/**
+ * Stores an incoming platform webhook event after token verification
+ * @summary Receive a platform webhook event
+ */
+export const ReceiveWebhookParams = zod.object({
+  "platform": zod.coerce.string()
+})
+
+export const ReceiveWebhookQueryParams = zod.object({
+  "token": zod.coerce.string().optional()
+})
+
+export const ReceiveWebhookHeader = zod.object({
+  "x-webhook-token": zod.string().optional()
+})
+
+export const ReceiveWebhookBody = zod.record(zod.string(), zod.unknown())
+
+export const ReceiveWebhookResponse = zod.object({
+  "received": zod.boolean().optional()
+})
+
+
+/**
+ * Returns the workspace subscription plan and status
+ * @summary Current subscription
+ */
+export const GetSubscriptionResponse = zod.object({
+  "plan": zod.string(),
+  "status": zod.string(),
+  "currentPeriodEnd": zod.string().nullish(),
+  "stripeConfigured": zod.boolean()
+})
+
+
+/**
+ * Creates a Stripe subscription Checkout Session and returns its URL
+ * @summary Create a Stripe Checkout session
+ */
+export const CreateCheckoutBody = zod.object({
+  "plan": zod.enum(['starter', 'pro'])
+})
+
+export const CreateCheckoutResponse = zod.object({
+  "url": zod.string().nullish()
+})
+
+
+/**
+ * Receives Stripe subscription events and syncs the local subscription row
+ * @summary Stripe webhook
+ */
+export const BillingWebhookHeader = zod.object({
+  "stripe-signature": zod.string()
+})
+
+export const BillingWebhookBody = zod.record(zod.string(), zod.unknown())
+
+export const BillingWebhookResponse = zod.object({
+  "received": zod.boolean().optional()
+})
 
 

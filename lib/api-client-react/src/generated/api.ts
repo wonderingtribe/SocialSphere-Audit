@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * API specification
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 import {
   useMutation,
@@ -20,14 +20,29 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApproveConversationBody,
+  ApproveConversationResponse,
+  BillingWebhook200,
+  BillingWebhookBody,
+  ConnectionResult,
   Conversation,
+  CreateCheckout200,
+  CreateCheckoutBody,
   HealthStatus,
   Integration,
-  Lead
+  Lead,
+  ListWebhookEventsParams,
+  OauthCallbackParams,
+  ReceiveWebhook200,
+  ReceiveWebhookBody,
+  ReceiveWebhookParams,
+  SubscriptionStatus,
+  WebhookEvent,
+  WebhookSettingsResponse
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
-import type { ErrorType } from '../custom-fetch';
+import type { ErrorType , BodyType } from '../custom-fetch';
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -515,6 +530,79 @@ export function useGetConversation<TData = Awaited<ReturnType<typeof getConversa
 
 
 
+export const getApproveConversationUrl = (id: string,) => {
+
+
+
+
+  return `/api/conversations/${id}/approve`
+}
+
+/**
+ * Approves a reply for the conversation. The reply is stored and flagged approved; it is only ever delivered after the platform adapter confirms a real send through an official API. Never simulates a send.
+ * @summary Approve an AI-suggested reply
+ */
+export const approveConversation = async (id: string,
+    approveConversationBody: ApproveConversationBody, options?: Parameters<typeof customFetch>[1]): Promise<ApproveConversationResponse> => {
+
+  return customFetch<ApproveConversationResponse>(getApproveConversationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(approveConversationBody)
+  }
+);}
+
+
+
+
+
+export const getApproveConversationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveConversation>>, TError,{id: string;data: BodyType<ApproveConversationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveConversation>>, TError,{id: string;data: BodyType<ApproveConversationBody>}, TContext> => {
+
+const mutationKey = ['approveConversation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveConversation>>, {id: string;data: BodyType<ApproveConversationBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  approveConversation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveConversationMutationResult = NonNullable<Awaited<ReturnType<typeof approveConversation>>>
+    export type ApproveConversationMutationBody = BodyType<ApproveConversationBody>
+    export type ApproveConversationMutationError = ErrorType<void>
+
+    /**
+ * @summary Approve an AI-suggested reply
+ */
+export const useApproveConversation = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveConversation>>, TError,{id: string;data: BodyType<ApproveConversationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof approveConversation>>,
+        TError,
+        {id: string;data: BodyType<ApproveConversationBody>},
+        TContext
+      > => {
+      return useMutation(getApproveConversationMutationOptions(options));
+    }
+
 export const getListIntegrationsUrl = () => {
 
 
@@ -592,4 +680,706 @@ export function useListIntegrations<TData = Awaited<ReturnType<typeof listIntegr
 
 
 
+
+export const getConnectIntegrationUrl = (id: string,) => {
+
+
+
+
+  return `/api/integrations/${id}/connect`
+}
+
+/**
+ * Returns the official OAuth authorization URL for a platform. Credentials must be configured via environment variables.
+ * @summary Get an OAuth authorization URL
+ */
+export const connectIntegration = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<ConnectionResult> => {
+
+  return customFetch<ConnectionResult>(getConnectIntegrationUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getConnectIntegrationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof connectIntegration>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof connectIntegration>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['connectIntegration'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof connectIntegration>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  connectIntegration(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConnectIntegrationMutationResult = NonNullable<Awaited<ReturnType<typeof connectIntegration>>>
+
+    export type ConnectIntegrationMutationError = ErrorType<void>
+
+    /**
+ * @summary Get an OAuth authorization URL
+ */
+export const useConnectIntegration = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof connectIntegration>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof connectIntegration>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getConnectIntegrationMutationOptions(options));
+    }
+
+export const getOauthCallbackUrl = (params: OauthCallbackParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/integrations/oauth/callback?${stringifiedParams}` : `/api/integrations/oauth/callback`
+}
+
+/**
+ * Handles the OAuth redirect after a user authorizes a platform
+ * @summary OAuth callback
+ */
+export const oauthCallback = async (params: OauthCallbackParams, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getOauthCallbackUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getOauthCallbackQueryKey = (params?: OauthCallbackParams,) => {
+    return [
+    `/api/integrations/oauth/callback`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOauthCallbackQueryOptions = <TData = Awaited<ReturnType<typeof oauthCallback>>, TError = ErrorType<void>>(params: OauthCallbackParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof oauthCallback>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOauthCallbackQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof oauthCallback>>> = ({ signal }) => oauthCallback(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof oauthCallback>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type OauthCallbackQueryResult = NonNullable<Awaited<ReturnType<typeof oauthCallback>>>
+export type OauthCallbackQueryError = ErrorType<void>
+
+
+/**
+ * @summary OAuth callback
+ */
+
+export function useOauthCallback<TData = Awaited<ReturnType<typeof oauthCallback>>, TError = ErrorType<void>>(
+ params: OauthCallbackParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof oauthCallback>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getOauthCallbackQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListWebhookSettingsUrl = () => {
+
+
+
+
+  return `/api/settings/webhooks`
+}
+
+/**
+ * Returns per-platform webhook callback URLs and verify tokens for registering in platform developer dashboards
+ * @summary List webhook settings
+ */
+export const listWebhookSettings = async ( options?: Parameters<typeof customFetch>[1]): Promise<WebhookSettingsResponse> => {
+
+  return customFetch<WebhookSettingsResponse>(getListWebhookSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWebhookSettingsQueryKey = () => {
+    return [
+    `/api/settings/webhooks`
+    ] as const;
+    }
+
+
+export const getListWebhookSettingsQueryOptions = <TData = Awaited<ReturnType<typeof listWebhookSettings>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWebhookSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWebhookSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWebhookSettings>>> = ({ signal }) => listWebhookSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWebhookSettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWebhookSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof listWebhookSettings>>>
+export type ListWebhookSettingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List webhook settings
+ */
+
+export function useListWebhookSettings<TData = Awaited<ReturnType<typeof listWebhookSettings>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWebhookSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWebhookSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListWebhookEventsUrl = (params?: ListWebhookEventsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/settings/webhooks/events?${stringifiedParams}` : `/api/settings/webhooks/events`
+}
+
+/**
+ * Returns the most recent webhook events received from platforms
+ * @summary List recent webhook events
+ */
+export const listWebhookEvents = async (params?: ListWebhookEventsParams, options?: Parameters<typeof customFetch>[1]): Promise<WebhookEvent[]> => {
+
+  return customFetch<WebhookEvent[]>(getListWebhookEventsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWebhookEventsQueryKey = (params?: ListWebhookEventsParams,) => {
+    return [
+    `/api/settings/webhooks/events`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListWebhookEventsQueryOptions = <TData = Awaited<ReturnType<typeof listWebhookEvents>>, TError = ErrorType<unknown>>(params?: ListWebhookEventsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWebhookEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWebhookEventsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWebhookEvents>>> = ({ signal }) => listWebhookEvents(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWebhookEvents>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWebhookEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listWebhookEvents>>>
+export type ListWebhookEventsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List recent webhook events
+ */
+
+export function useListWebhookEvents<TData = Awaited<ReturnType<typeof listWebhookEvents>>, TError = ErrorType<unknown>>(
+ params?: ListWebhookEventsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWebhookEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWebhookEventsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getVerifyWebhookUrl = (platform: string,) => {
+
+
+
+
+  return `/api/webhooks/${platform}`
+}
+
+/**
+ * Answers a platform webhook verification challenge
+ * @summary Platform webhook verification
+ */
+export const verifyWebhook = async (platform: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getVerifyWebhookUrl(platform),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getVerifyWebhookQueryKey = (platform: string,) => {
+    return [
+    `/api/webhooks/${platform}`
+    ] as const;
+    }
+
+
+export const getVerifyWebhookQueryOptions = <TData = Awaited<ReturnType<typeof verifyWebhook>>, TError = ErrorType<void>>(platform: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof verifyWebhook>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getVerifyWebhookQueryKey(platform);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof verifyWebhook>>> = ({ signal }) => verifyWebhook(platform, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: platform !== null && platform !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof verifyWebhook>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type VerifyWebhookQueryResult = NonNullable<Awaited<ReturnType<typeof verifyWebhook>>>
+export type VerifyWebhookQueryError = ErrorType<void>
+
+
+/**
+ * @summary Platform webhook verification
+ */
+
+export function useVerifyWebhook<TData = Awaited<ReturnType<typeof verifyWebhook>>, TError = ErrorType<void>>(
+ platform: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof verifyWebhook>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getVerifyWebhookQueryOptions(platform,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReceiveWebhookUrl = (platform: string,
+    params?: ReceiveWebhookParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/webhooks/${platform}?${stringifiedParams}` : `/api/webhooks/${platform}`
+}
+
+/**
+ * Stores an incoming platform webhook event after token verification
+ * @summary Receive a platform webhook event
+ */
+export const receiveWebhook = async (platform: string,
+    receiveWebhookBody: ReceiveWebhookBody,
+    params?: ReceiveWebhookParams, options?: Parameters<typeof customFetch>[1]): Promise<ReceiveWebhook200> => {
+
+  return customFetch<ReceiveWebhook200>(getReceiveWebhookUrl(platform,params),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(receiveWebhookBody)
+  }
+);}
+
+
+
+
+
+export const getReceiveWebhookMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveWebhook>>, TError,{platform: string;data: BodyType<ReceiveWebhookBody>;params?: ReceiveWebhookParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof receiveWebhook>>, TError,{platform: string;data: BodyType<ReceiveWebhookBody>;params?: ReceiveWebhookParams}, TContext> => {
+
+const mutationKey = ['receiveWebhook'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof receiveWebhook>>, {platform: string;data: BodyType<ReceiveWebhookBody>;params?: ReceiveWebhookParams}> = (props) => {
+          const {platform,data,params} = props ?? {};
+
+          return  receiveWebhook(platform,data,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReceiveWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof receiveWebhook>>>
+    export type ReceiveWebhookMutationBody = BodyType<ReceiveWebhookBody>
+    export type ReceiveWebhookMutationError = ErrorType<void>
+
+    /**
+ * @summary Receive a platform webhook event
+ */
+export const useReceiveWebhook = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveWebhook>>, TError,{platform: string;data: BodyType<ReceiveWebhookBody>;params?: ReceiveWebhookParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof receiveWebhook>>,
+        TError,
+        {platform: string;data: BodyType<ReceiveWebhookBody>;params?: ReceiveWebhookParams},
+        TContext
+      > => {
+      return useMutation(getReceiveWebhookMutationOptions(options));
+    }
+
+export const getGetSubscriptionUrl = () => {
+
+
+
+
+  return `/api/billing/subscription`
+}
+
+/**
+ * Returns the workspace subscription plan and status
+ * @summary Current subscription
+ */
+export const getSubscription = async ( options?: Parameters<typeof customFetch>[1]): Promise<SubscriptionStatus> => {
+
+  return customFetch<SubscriptionStatus>(getGetSubscriptionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSubscriptionQueryKey = () => {
+    return [
+    `/api/billing/subscription`
+    ] as const;
+    }
+
+
+export const getGetSubscriptionQueryOptions = <TData = Awaited<ReturnType<typeof getSubscription>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSubscription>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSubscriptionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSubscription>>> = ({ signal }) => getSubscription({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSubscription>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSubscriptionQueryResult = NonNullable<Awaited<ReturnType<typeof getSubscription>>>
+export type GetSubscriptionQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Current subscription
+ */
+
+export function useGetSubscription<TData = Awaited<ReturnType<typeof getSubscription>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSubscription>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSubscriptionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateCheckoutUrl = () => {
+
+
+
+
+  return `/api/billing/checkout`
+}
+
+/**
+ * Creates a Stripe subscription Checkout Session and returns its URL
+ * @summary Create a Stripe Checkout session
+ */
+export const createCheckout = async (createCheckoutBody: CreateCheckoutBody, options?: Parameters<typeof customFetch>[1]): Promise<CreateCheckout200> => {
+
+  return customFetch<CreateCheckout200>(getCreateCheckoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createCheckoutBody)
+  }
+);}
+
+
+
+
+
+export const getCreateCheckoutMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCheckout>>, TError,{data: BodyType<CreateCheckoutBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCheckout>>, TError,{data: BodyType<CreateCheckoutBody>}, TContext> => {
+
+const mutationKey = ['createCheckout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCheckout>>, {data: BodyType<CreateCheckoutBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCheckout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof createCheckout>>>
+    export type CreateCheckoutMutationBody = BodyType<CreateCheckoutBody>
+    export type CreateCheckoutMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a Stripe Checkout session
+ */
+export const useCreateCheckout = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCheckout>>, TError,{data: BodyType<CreateCheckoutBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCheckout>>,
+        TError,
+        {data: BodyType<CreateCheckoutBody>},
+        TContext
+      > => {
+      return useMutation(getCreateCheckoutMutationOptions(options));
+    }
+
+export const getBillingWebhookUrl = () => {
+
+
+
+
+  return `/api/billing/webhook`
+}
+
+/**
+ * Receives Stripe subscription events and syncs the local subscription row
+ * @summary Stripe webhook
+ */
+export const billingWebhook = async (billingWebhookBody: BillingWebhookBody, options?: Parameters<typeof customFetch>[1]): Promise<BillingWebhook200> => {
+
+  return customFetch<BillingWebhook200>(getBillingWebhookUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(billingWebhookBody)
+  }
+);}
+
+
+
+
+
+export const getBillingWebhookMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof billingWebhook>>, TError,{data: BodyType<BillingWebhookBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof billingWebhook>>, TError,{data: BodyType<BillingWebhookBody>}, TContext> => {
+
+const mutationKey = ['billingWebhook'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof billingWebhook>>, {data: BodyType<BillingWebhookBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  billingWebhook(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BillingWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof billingWebhook>>>
+    export type BillingWebhookMutationBody = BodyType<BillingWebhookBody>
+    export type BillingWebhookMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Stripe webhook
+ */
+export const useBillingWebhook = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof billingWebhook>>, TError,{data: BodyType<BillingWebhookBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof billingWebhook>>,
+        TError,
+        {data: BodyType<BillingWebhookBody>},
+        TContext
+      > => {
+      return useMutation(getBillingWebhookMutationOptions(options));
+    }
 

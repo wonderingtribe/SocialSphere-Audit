@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.3.0
  */
 
-export interface HealthStatus {
-  status: string;
+export interface WebhookEvent {
+  id: number;
+  platform: string;
+  eventType: string;
+  receivedAt: string;
 }

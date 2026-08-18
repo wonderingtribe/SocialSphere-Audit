@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.3.0
  */
 
-export interface HealthStatus {
+export interface SubscriptionStatus {
+  plan: string;
   status: string;
+  currentPeriodEnd?: string | null;
+  stripeConfigured: boolean;
 }

@@ -5,6 +5,8 @@ import {
   getListIntegrationsQueryKey,
   getListLeadsQueryKey,
   useAdvanceLead,
+  useApproveConversation,
+  useConnectIntegration,
   useListConversations,
   useListIntegrations,
   useListLeads,
@@ -51,6 +53,8 @@ function advanceDemoStatus(status: LeadStatus, mode: DataMode): LeadStatus | nul
   return statusOrder[nextIndex];
 }
 
+type DeliveryResult = 'requires_connection' | 'queued';
+
 type SocialSphereContextValue = {
   leads: Lead[];
   conversations: Conversation[];
@@ -61,6 +65,13 @@ type SocialSphereContextValue = {
   getLead: (id: string) => Lead | undefined;
   getConversation: (id: string) => Conversation | undefined;
   advanceLead: (id: string) => void;
+  /** Returns the official OAuth authorization URL, or null when unconfigured. */
+  connectIntegration: (id: string) => Promise<string | null>;
+  /** Approves an AI-suggested reply on the server. Never simulates a send. */
+  approveConversation: (
+    id: string,
+    reply: string,
+  ) => Promise<DeliveryResult | null>;
 };
 
 const SocialSphereContext = createContext<SocialSphereContextValue | null>(null);
@@ -85,6 +96,8 @@ export function SocialSphereProvider({ children }: { children: React.ReactNode }
   });
 
   const advanceMutation = useAdvanceLead();
+  const connectMutation = useConnectIntegration();
+  const approveMutation = useApproveConversation();
 
   const leads = leadsQuery.data ?? demoLeads;
   const conversations = conversationsQuery.data ?? demoConversations;
@@ -138,6 +151,37 @@ export function SocialSphereProvider({ children }: { children: React.ReactNode }
           },
         );
       },
+      connectIntegration: (id) =>
+        new Promise((resolve, reject) => {
+          connectMutation.mutate(
+            { id },
+            {
+              onSuccess: (result) => resolve(result.authUrl || null),
+              onError: () => resolve(null),
+            },
+          );
+        }),
+      approveConversation: (id, reply) =>
+        new Promise((resolve, reject) => {
+          approveMutation.mutate(
+            { id, data: { reply } },
+            {
+              onSuccess: (result) => {
+                queryClient.setQueryData(
+                  getListConversationsQueryKey(),
+                  (current: Conversation[] | undefined) =>
+                    current?.map((conversation) =>
+                      conversation.id === id
+                        ? { ...conversation, ...result.conversation }
+                        : conversation,
+                    ) ?? current,
+                );
+                resolve(result.delivery);
+              },
+              onError: () => resolve(null),
+            },
+          );
+        }),
     }),
     [
       leads,
@@ -153,6 +197,8 @@ export function SocialSphereProvider({ children }: { children: React.ReactNode }
       conversationsQuery.error,
       integrationsQuery.error,
       advanceMutation,
+      connectMutation,
+      approveMutation,
       queryClient,
     ],
   );

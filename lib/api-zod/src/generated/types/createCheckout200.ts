@@ -6,6 +6,6 @@
  * OpenAPI spec version: 0.3.0
  */
 
-export interface HealthStatus {
-  status: string;
-}
+export type CreateCheckout200 = {
+  url?: string | null;
+};

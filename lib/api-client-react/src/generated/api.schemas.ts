@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * API specification
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 export interface HealthStatus {
   status: string;
@@ -31,6 +31,14 @@ export const LeadStatus = {
   CUSTOMER: 'CUSTOMER',
 } as const;
 
+export type Plan = typeof Plan[keyof typeof Plan];
+
+
+export const Plan = {
+  starter: 'starter',
+  pro: 'pro',
+} as const;
+
 export interface Lead {
   id: string;
   name: string;
@@ -51,6 +59,15 @@ export interface Lead {
   mode: DataMode;
 }
 
+export type ConversationReplyStatus = typeof ConversationReplyStatus[keyof typeof ConversationReplyStatus];
+
+
+export const ConversationReplyStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  sent: 'sent',
+} as const;
+
 export interface Conversation {
   id: string;
   leadId: string;
@@ -62,7 +79,23 @@ export interface Conversation {
   sentiment: string;
   status: string;
   suggestion: string;
+  replyText?: string;
+  replyStatus?: ConversationReplyStatus;
+  sentAt?: string;
   mode: DataMode;
+}
+
+export type ApproveConversationResponseDelivery = typeof ApproveConversationResponseDelivery[keyof typeof ApproveConversationResponseDelivery];
+
+
+export const ApproveConversationResponseDelivery = {
+  requires_connection: 'requires_connection',
+  queued: 'queued',
+} as const;
+
+export interface ApproveConversationResponse {
+  conversation: Conversation;
+  delivery: ApproveConversationResponseDelivery;
 }
 
 export interface Integration {
@@ -72,4 +105,79 @@ export interface Integration {
   icon: string;
   connected: boolean;
 }
+
+export interface ConnectionResult {
+  id: string;
+  authUrl: string;
+  state: string;
+}
+
+export interface WebhookSetting {
+  platform: string;
+  callbackUrl: string;
+  verifyToken: string;
+  requiresWebhook: boolean;
+  configured: boolean;
+}
+
+export interface WebhookSettingsResponse {
+  base: string;
+  settings: WebhookSetting[];
+}
+
+export interface WebhookEvent {
+  id: number;
+  platform: string;
+  eventType: string;
+  receivedAt: string;
+}
+
+export interface SubscriptionStatus {
+  plan: string;
+  status: string;
+  currentPeriodEnd?: string | null;
+  stripeConfigured: boolean;
+}
+
+export type WebhookTokenHeaderParameter = string;
+
+export type StripeSignatureHeaderParameter = string;
+
+export type ApproveConversationBody = {
+  reply: string;
+};
+
+export type OauthCallbackParams = {
+code: string;
+state: string;
+error?: string;
+};
+
+export type ListWebhookEventsParams = {
+platform?: string;
+};
+
+export type ReceiveWebhookParams = {
+token?: string;
+};
+
+export type ReceiveWebhookBody = { [key: string]: unknown };
+
+export type ReceiveWebhook200 = {
+  received?: boolean;
+};
+
+export type CreateCheckoutBody = {
+  plan: Plan;
+};
+
+export type CreateCheckout200 = {
+  url?: string | null;
+};
+
+export type BillingWebhookBody = { [key: string]: unknown };
+
+export type BillingWebhook200 = {
+  received?: boolean;
+};
 
